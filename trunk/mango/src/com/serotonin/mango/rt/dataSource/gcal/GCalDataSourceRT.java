@@ -61,7 +61,7 @@ import com.serotonin.util.StringUtils;
 import com.serotonin.web.i18n.LocalizableMessage;
 
 /**
- * @author Dmitry
+ * @author Dmitry xxx
  */
 public class GCalDataSourceRT extends PollingDataSource {
     public static final int DATA_SOURCE_EXCEPTION_EVENT = 1;
