@@ -33,10 +33,9 @@ import java.sql.Types;
 import com.google.gdata.client.*;
 import com.google.gdata.client.calendar.*;
 import com.google.gdata.data.*;
-//import com.google.gdata.data.acl.*;
+
 import com.google.gdata.data.calendar.*;
 import com.google.gdata.data.extensions.*;
-//import com.google.gdata.util.*;
 import java.net.URL;
 
 import org.apache.commons.logging.Log;
