@@ -338,19 +338,17 @@ public class GCalDataSourceRT extends PollingDataSource {
     	
         // Get a connection to the database. No need to pool, because we don't intend to close it until we shut down.
         try {
-        	service = new CalendarService("exampleCo-exampleApp-1");
+        	service = new CalendarService("");
         	service.setUserCredentials(vo.getUsername(), vo.getPassword());
 
         	
         	// Send the request and print the response
-        	URL feedUrl = new URL("https://www.google.com/calendar/feeds/default/owncalendars/full");
+        	URL feedUrl = new URL(vo.getFeedUrl());
         	CalendarFeed resultFeed = service.getFeed(feedUrl, CalendarFeed.class);
-        	System.out.println("Calendars you own:");
-        	System.out.println();
-        	for (int i = 0; i < resultFeed.getEntries().size(); i++) {
-        		CalendarEntry entry = resultFeed.getEntries().get(i);  
-        		System.out.println("\t" + entry.getTitle().getPlainText());
-        		}
+//        	for (int i = 0; i < resultFeed.getEntries().size(); i++) {
+//        		CalendarEntry entry = resultFeed.getEntries().get(i);  
+//        		System.out.println("\t" + entry.getTitle().getPlainText());
+//        		}
         	
 //        	DriverManager.registerDriver((Driver) Class.forName(vo.getDriverClassname()).newInstance());
 //            conn = DriverManager.getConnection(vo.getConnectionUrl(), vo.getUsername(), vo.getPassword());

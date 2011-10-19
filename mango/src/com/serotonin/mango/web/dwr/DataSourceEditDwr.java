@@ -116,6 +116,7 @@ import com.serotonin.mango.vo.dataSource.ebro.EBI25DataSourceVO;
 import com.serotonin.mango.vo.dataSource.ebro.EBI25PointLocatorVO;
 import com.serotonin.mango.vo.dataSource.galil.GalilDataSourceVO;
 import com.serotonin.mango.vo.dataSource.galil.GalilPointLocatorVO;
+import com.serotonin.mango.vo.dataSource.gcal.GCalDataSourceVO;
 import com.serotonin.mango.vo.dataSource.http.HttpImageDataSourceVO;
 import com.serotonin.mango.vo.dataSource.http.HttpImagePointLocatorVO;
 import com.serotonin.mango.vo.dataSource.http.HttpReceiverDataSourceVO;
@@ -180,6 +181,7 @@ import com.serotonin.mango.web.dwr.beans.OpenV4JProtocolBean;
 import com.serotonin.mango.web.dwr.beans.SnmpOidGet;
 import com.serotonin.mango.web.dwr.beans.SpinwaveSensorListener;
 import com.serotonin.mango.web.dwr.beans.SqlStatementTester;
+import com.serotonin.mango.web.dwr.beans.GCalTestingUtility;
 import com.serotonin.modbus4j.ModbusFactory;
 import com.serotonin.modbus4j.ModbusMaster;
 import com.serotonin.modbus4j.code.RegisterRange;
@@ -855,10 +857,9 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     //
     @MethodFilter
     public DwrResponseI18n saveGCalDataSource(String name, String xid, int updatePeriods, int updatePeriodType,
-            String username, String password) {
+            String username, String password, String calendarName) {
     	
-System.out.println("SAVING");    	
-        SqlDataSourceVO ds = (SqlDataSourceVO) Common.getUser().getEditDataSource();
+        GCalDataSourceVO ds = (GCalDataSourceVO) Common.getUser().getEditDataSource();
 
         ds.setXid(xid);
         ds.setName(name);
@@ -866,6 +867,7 @@ System.out.println("SAVING");
         ds.setUpdatePeriodType(updatePeriodType);
         ds.setUsername(username);
         ds.setPassword(password);
+        ds.setCalendarName(calendarName);
 
         return tryDataSourceSave(ds);
     }
@@ -875,30 +877,30 @@ System.out.println("SAVING");
         return validatePoint(id, xid, name, locator, null);
     }
 
-//    @MethodFilter
-//    public void sqlTestStatement(String driverClassname, String connectionUrl, String username, String password,
-//            String selectStatement, boolean rowBasedQuery) {
-//        User user = Common.getUser();
-//        Permissions.ensureDataSourcePermission(user);
-//        user.setTestingUtility(new SqlStatementTester(getResourceBundle(), driverClassname, connectionUrl, username,
-//                password, selectStatement, rowBasedQuery));
-//    }
+    @MethodFilter
+    public void gcalGetCals(String username, String password) {
+        User user = Common.getUser();
+        Permissions.ensureDataSourcePermission(user);
+        GCalDataSourceVO ds = (GCalDataSourceVO) Common.getUser().getEditDataSource();
+        user.setTestingUtility(new GCalTestingUtility(getResourceBundle(), ds.getFeedUrl(), username,
+                password));
+    }
 
-//    @MethodFilter
-//    public Map<String, Object> sqlTestStatementUpdate() {
-//        Map<String, Object> result = new HashMap<String, Object>();
-//        SqlStatementTester statementTester = Common.getUser().getTestingUtility(SqlStatementTester.class);
-//        if (statementTester == null)
-//            return null;
-//        if (!statementTester.isDone())
-//            return null;
-//
-//        if (statementTester.getErrorMessage() != null)
-//            result.put("error", statementTester.getErrorMessage());
-//        else
-//            result.put("resultTable", statementTester.getResultTable());
-//        return result;
-//    }
+    @MethodFilter
+    public Map<String, Object> gcalTestStatementUpdate() {
+        Map<String, Object> result = new HashMap<String, Object>();
+        GCalTestingUtility utility = Common.getUser().getTestingUtility(GCalTestingUtility.class);
+        if (utility == null)
+            return null;
+        if (!utility.isDone())
+            return null;
+
+        if (utility.getErrorMessage() != null)
+            result.put("error", utility.getErrorMessage());
+        else
+            result.put("calendars", utility.getCalendars());
+        return result;
+    }
 
    //
     //

@@ -47,13 +47,13 @@ import com.serotonin.web.i18n.LocalizableMessage;
 @JsonRemoteEntity
 public class GCalDataSourceVO extends DataSourceVO<GCalDataSourceVO> {
     public static final Type TYPE = Type.GCAL;
+    private static final String feedUrl = "https://www.google.com/calendar/feeds/default/owncalendars/full";
 
     @Override
     protected void addEventTypes(List<EventTypeVO> ets) {
         ets.add(createEventType(GCalDataSourceRT.DATA_SOURCE_EXCEPTION_EVENT, new LocalizableMessage(
                 "event.ds.dataSource")));
-        ets
-                .add(createEventType(GCalDataSourceRT.STATEMENT_EXCEPTION_EVENT, new LocalizableMessage(
+        ets.add(createEventType(GCalDataSourceRT.STATEMENT_EXCEPTION_EVENT, new LocalizableMessage(
                         "event.ds.statement")));
     }
 
@@ -97,16 +97,16 @@ public class GCalDataSourceVO extends DataSourceVO<GCalDataSourceVO> {
     @JsonRemoteProperty
     private String password;
     @JsonRemoteProperty
-    private String selectStatement;
+    private String calendarName;
     private int updatePeriodType = Common.TimePeriods.MINUTES;
     @JsonRemoteProperty
     private int updatePeriods = 5;
     @JsonRemoteProperty
     private boolean rowBasedQuery = false;
 
-//    public String getDriverClassname() {
-//        return driverClassname;
-//    }
+    public String getFeedUrl() {
+        return feedUrl;
+    }
 
 //    public void setDriverClassname(String driverClassname) {
 //        this.driverClassname = driverClassname;
@@ -152,12 +152,12 @@ public class GCalDataSourceVO extends DataSourceVO<GCalDataSourceVO> {
         this.username = username;
     }
 
-    public String getSelectStatement() {
-        return selectStatement;
+    public String getCalendarName() {
+        return calendarName;
     }
 
-    public void setSelectStatement(String selectStatement) {
-        this.selectStatement = selectStatement;
+    public void setCalendarName(String calendarName) {
+        this.calendarName = calendarName;
     }
 
     public boolean isRowBasedQuery() {
@@ -179,6 +179,8 @@ public class GCalDataSourceVO extends DataSourceVO<GCalDataSourceVO> {
             response.addContextualMessage("username", "validate.required");
         if (StringUtils.isEmpty(password))
             response.addContextualMessage("password", "validate.required");
+        if (StringUtils.isEmpty(calendarName))
+            response.addContextualMessage("calendarName", "validate.required");
     }
 
     @Override
@@ -188,7 +190,7 @@ public class GCalDataSourceVO extends DataSourceVO<GCalDataSourceVO> {
 //        AuditEventType.addPropertyMessage(list, "dsEdit.sql.connectionString", connectionUrl);
         AuditEventType.addPropertyMessage(list, "dsEdit.sql.username", username);
         AuditEventType.addPropertyMessage(list, "dsEdit.sql.password", password);
-        AuditEventType.addPropertyMessage(list, "dsEdit.sql.select", selectStatement);
+        AuditEventType.addPropertyMessage(list, "dsEdit.gcal.calendarName", calendarName);
         AuditEventType.addPropertyMessage(list, "dsEdit.sql.rowQuery", rowBasedQuery);
     }
 
@@ -202,7 +204,7 @@ public class GCalDataSourceVO extends DataSourceVO<GCalDataSourceVO> {
 //                connectionUrl);
         AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.gcal.username", from.username, username);
         AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.gcal.password", from.password, password);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.gcal.select", from.selectStatement, selectStatement);
+        AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.gcal.calendarName", from.calendarName, calendarName);
         AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.gcal.rowQuery", from.rowBasedQuery, rowBasedQuery);
     }
 
@@ -220,7 +222,7 @@ public class GCalDataSourceVO extends DataSourceVO<GCalDataSourceVO> {
 //        SerializationHelper.writeSafeUTF(out, connectionUrl);
         SerializationHelper.writeSafeUTF(out, username);
         SerializationHelper.writeSafeUTF(out, password);
-        SerializationHelper.writeSafeUTF(out, selectStatement);
+        SerializationHelper.writeSafeUTF(out, calendarName);
         out.writeInt(updatePeriodType);
         out.writeInt(updatePeriods);
         out.writeBoolean(rowBasedQuery);
@@ -235,7 +237,7 @@ public class GCalDataSourceVO extends DataSourceVO<GCalDataSourceVO> {
 //            connectionUrl = SerializationHelper.readSafeUTF(in);
             username = SerializationHelper.readSafeUTF(in);
             password = SerializationHelper.readSafeUTF(in);
-            selectStatement = SerializationHelper.readSafeUTF(in);
+            calendarName = SerializationHelper.readSafeUTF(in);
             updatePeriodType = in.readInt();
             updatePeriods = in.readInt();
             rowBasedQuery = false;
@@ -245,7 +247,7 @@ public class GCalDataSourceVO extends DataSourceVO<GCalDataSourceVO> {
 //            connectionUrl = SerializationHelper.readSafeUTF(in);
             username = SerializationHelper.readSafeUTF(in);
             password = SerializationHelper.readSafeUTF(in);
-            selectStatement = SerializationHelper.readSafeUTF(in);
+            calendarName = SerializationHelper.readSafeUTF(in);
             updatePeriodType = in.readInt();
             updatePeriods = in.readInt();
             rowBasedQuery = in.readBoolean();
