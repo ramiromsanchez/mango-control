@@ -4,6 +4,7 @@
 package com.serotonin.mango.web.dwr.beans;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.net.URL;
 import java.sql.Connection;
@@ -32,11 +33,14 @@ public class GCalTestingUtility extends Thread implements TestingUtility {
     private boolean done = false;
     private String errorMessage = null;
     private final ArrayList<String> calendars = new ArrayList<String>();
+    
+	private static final String GCAL_ID_PREFIX = "http://www.google.com/calendar/feeds/default/calendars/";
+
 
     public GCalTestingUtility(ResourceBundle bundle, String feedUrl, String username,
             String password) {
         this.bundle = bundle;
-        this.feedUrl = feedUrl;
+        this.feedUrl = "https://www.google.com/calendar/feeds/default/owncalendars/full";
         this.username = username;
         this.password = password;
         start();
@@ -53,7 +57,11 @@ public class GCalTestingUtility extends Thread implements TestingUtility {
 
     	for (int i = 0; i < resultFeed.getEntries().size(); i++) {
     		CalendarEntry entry = resultFeed.getEntries().get(i);
-    		calendars.add(entry.getTitle().getPlainText());
+    		String stringEntry = entry.getTitle().getPlainText();
+    		String stringId = entry.getId().substring(entry.getId().lastIndexOf("/")+1);
+    		calendars.add(stringEntry + ":" + stringId);
+    		
+System.out.println(stringEntry + ":" + stringId);    		
     		}
     	}
         catch (Exception e) {
