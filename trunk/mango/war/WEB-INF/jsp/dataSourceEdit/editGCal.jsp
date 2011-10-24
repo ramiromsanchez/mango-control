@@ -20,8 +20,15 @@
 
 <script type="text/javascript">
   function initImpl() {
-//      alert("starting initImpl");
+//      alert("${dataSource.calendarName}");
       gcalGetCalsButton(false);
+      option = document.createElement("option");
+      if ("${dataSource.calendarName}" != "") {
+          option.value = "${dataSource.calendarFeed}";
+          option.selected = true;
+          $set(option, "${dataSource.calendarName}");
+          $("calendarNameSelect").appendChild(option);  	  
+      }
 //      alert("initImpl");
   }
   
@@ -30,8 +37,9 @@
       $set("gcalGetCalsError", "<fmt:message key="dsEdit.gcal.getCals"/>");
       show("gcalGetCalsError");
       gcalGetCalsButton(true);
-      hide("gcalGetCalsResults");
-      dwr.util.removeAllRows("gcalGetCalsResults");
+//      hide("gcalGetCalsResults");
+      hide("calendarNameSelect");
+//      dwr.util.removeAllRows("gcalGetCalsResults");
       DataSourceEditDwr.gcalGetCals($get("username"), 
               $get("password"), gcalGetCalsCB);
 //      alert("gcalGetCals");
@@ -47,13 +55,20 @@
 //      alert("getCalsUpdate");
   }
   
+  function clearChildren(node) {
+	  while (node.firstChild) {
+		  node.removeChild(node.firstChild);
+	  }
+  }
+  
   function getCalsUpdateCB(result) {
       if (result) {
           if (result.error)
               $set("gcalGetCalsError", result.error);
           else {
               hide("gCAlgetCalsError");
-              var tbody, td, tr, r, c;
+/*
+var tbody, td, tr, r, c;
               tbody = $("gcalGetCalsResults");
               tr = document.createElement("tr");
               tr.className = "smRowHeader";
@@ -65,6 +80,20 @@
               }
               
               show(tbody);
+*/              
+              var select, option;
+              select = $("calendarNameSelect");
+              clearChildren(select);
+              for (c=0; c<result.calendars.length; c++) {
+                  option = document.createElement("option");
+                  var entry = result.calendars[c]
+                  option.value = entry.split(":")[1];
+                  option.selected = c == 0;
+                  $set(option, entry.split(":")[0]);
+                  select.appendChild(option);
+              }
+              
+              show(select);
           }
           gcalGetCalsButton(false);
       }
@@ -78,11 +107,13 @@
       setDisabled($("gcalGetCalsButton"), testing);
 //      alert("getCalsButton");
   }
-
+  
   function saveDataSourceImpl() {
+	  alert($get("calendarNameSelect"));
+	  alert(calendarNameSelect.selectedIndex);	  
       DataSourceEditDwr.saveGCalDataSource($get("dataSourceName"), $get("dataSourceXid"), $get("updatePeriods"),
               $get("updatePeriodType"), $get("username"),
-              $get("password"), $get("calendarName"), saveDataSourceCB);
+              $get("password"), calendarNameSelect.options[calendarNameSelect.selectedIndex].text, $get("calendarNameSelect"), saveDataSourceCB);
 //      alert("saveDataSourceImpl");
 
   }
@@ -96,21 +127,21 @@
   }
   
   function editPointCBImpl(locator) {
-      $set("fieldName", locator.fieldName);
+      $set("daysPeriod", locator.daysPeriod);
       $set("timeOverrideName", locator.timeOverrideName);
-      $set("updateStatement", locator.updateStatement);
       $set("dataTypeId", locator.dataTypeId);
   }
   
   function savePointImpl(locator) {
       delete locator.settable;
       
-      locator.fieldName = $get("fieldName");
+//      locator.fieldName = $get("fieldName");
       locator.timeOverrideName = $get("timeOverrideName");
-      locator.updateStatement = $get("updateStatement");
+      locator.daysPeriod = $get("daysPeriod");
       locator.dataTypeId = $get("dataTypeId");
+      alert("here");
       
-      DataSourceEditDwr.saveSqlPointLocator(currentPoint.id, $get("xid"), $get("name"), locator, savePointCB);
+      DataSourceEditDwr.saveGCalPointLocator(currentPoint.id, $get("xid"), $get("name"), locator, savePointCB);
   }
   
 </script>
@@ -126,24 +157,37 @@
               <tag:timePeriodOptions sst="true" s="true" min="true" h="true"/>
             </sst:select>
           </td>
+          <td></td>
         </tr>
         
         <tr>
           <td class="formLabelRequired"><fmt:message key="dsEdit.sql.username"/></td>
           <td class="formField"><input id="username" type="text" value="${dataSource.username}"/></td>
+          <td></td>
         </tr>
         
         <tr>
           <td class="formLabelRequired"><fmt:message key="dsEdit.sql.password"/></td>
           <td class="formField"><input id="password" type="text" value="${dataSource.password}"/></td>
+          <td></td>
         </tr>
         <tr>
           <td class="formLabelRequired"><fmt:message key="dsEdit.sql.select"/></td>
           <td class="formField">
-            <input id="calendarName" type="text" value="${dataSource.calendarName}"/>
+            <select id="calendarNameSelect"></select>
+          </td>
+          <td>
+            <input id="gcalGetCalsButton" type="button" value="<fmt:message key="dsEdit.sql.execute"/>"  onclick="gcalGetCals();"/>
           </td>
         </tr>
-        
+<!-- 
+        <tr>
+          <td class="formLabelRequired"><fmt:message key="dsEdit.sql.select"/></td>
+          <td class="formField">
+            <input id="calendarName" type="hidden" value="${dataSource.calendarName}"/>
+          </td>
+        </tr>
+ -->        
       </table>
       <tag:dsEvents/>
     </div>
@@ -151,17 +195,8 @@
   
   <td valign="top">
     <div class="borderDiv marB">
-      <table cellspacing="1">
-        <tr><td class="smallTitle"><fmt:message key="dsEdit.sql.test"/></td></tr>
-        
-        <tr>
-          <td align="center">
-            <input id="gcalGetCalsButton" type="button" value="<fmt:message key="dsEdit.sql.execute"/>"  onclick="gcalGetCals();"/>
-          </td>
-        </tr>
-        
+      <table cellspacing="1">    
         <tr><td id="gcalGetCalsError"></td></tr>
-        <tbody id="gcalGetCalsResults"></tbody>
 <%@ include file="/WEB-INF/jsp/dataSourceEdit/dsFoot.jspf" %>
 
 <tag:pointList pointHelpId="sqlPP">
@@ -175,13 +210,15 @@
   </tr>
   
   <tr>
-    <td id="fieldNameLabel" class="formLabelRequired"></td>
-    <td class="formField"><input type="text" id="fieldName"/></td>
+    <td id="fieldNameLabel" class="formLabelRequired"><fmt:message key="dsEdit.gcal.daysPeriod"/></td>
+    <td class="formField"><input type="text" id="daysPeriod" value="0"/></td>
   </tr>
   
 
-  <tr>
+<!-- 
+ <tr>
     <td class="formLabel"><fmt:message key="dsEdit.gcal.update"/></td>
     <td class="formField"><textarea cols="35" rows="4" name="updateStatement"></textarea></td>
   </tr>
+!-->
 </tag:pointList>

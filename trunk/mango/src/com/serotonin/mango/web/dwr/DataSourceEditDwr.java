@@ -162,6 +162,7 @@ import com.serotonin.mango.vo.dataSource.virtual.VirtualDataSourceVO;
 import com.serotonin.mango.vo.dataSource.virtual.VirtualPointLocatorVO;
 import com.serotonin.mango.vo.dataSource.vmstat.VMStatDataSourceVO;
 import com.serotonin.mango.vo.dataSource.vmstat.VMStatPointLocatorVO;
+import com.serotonin.mango.vo.dataSource.gcal.GCalPointLocatorVO;
 import com.serotonin.mango.vo.event.PointEventDetectorVO;
 import com.serotonin.mango.vo.permission.Permissions;
 import com.serotonin.mango.web.dwr.beans.BACnetDiscovery;
@@ -857,7 +858,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     //
     @MethodFilter
     public DwrResponseI18n saveGCalDataSource(String name, String xid, int updatePeriods, int updatePeriodType,
-            String username, String password, String calendarName) {
+            String username, String password, String calendarName, String calendarFeed) {
     	
         GCalDataSourceVO ds = (GCalDataSourceVO) Common.getUser().getEditDataSource();
 
@@ -868,12 +869,15 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         ds.setUsername(username);
         ds.setPassword(password);
         ds.setCalendarName(calendarName);
+        ds.setCalendarFeed(calendarFeed);
+        
+System.out.println(calendarName);        
 
         return tryDataSourceSave(ds);
     }
 
     @MethodFilter
-    public DwrResponseI18n saveGCalPointLocator(int id, String xid, String name, SqlPointLocatorVO locator) {
+    public DwrResponseI18n saveGCalPointLocator(int id, String xid, String name, GCalPointLocatorVO locator) {
         return validatePoint(id, xid, name, locator, null);
     }
 

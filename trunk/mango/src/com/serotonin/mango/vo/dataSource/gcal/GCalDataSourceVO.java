@@ -21,6 +21,8 @@ package com.serotonin.mango.vo.dataSource.gcal;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.text.Format;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -48,6 +50,11 @@ import com.serotonin.web.i18n.LocalizableMessage;
 public class GCalDataSourceVO extends DataSourceVO<GCalDataSourceVO> {
     public static final Type TYPE = Type.GCAL;
     private static final String feedUrl = "https://www.google.com/calendar/feeds/default/owncalendars/full";
+//    private static final Format dateFormat = new SimpleDateFormat("YYYY-MM-DDTHH:MM:SS");
+//    
+//    public String formatDate(Date date) {
+//    	return dateFormat.format(date);
+//    }
 
     @Override
     protected void addEventTypes(List<EventTypeVO> ets) {
@@ -98,6 +105,8 @@ public class GCalDataSourceVO extends DataSourceVO<GCalDataSourceVO> {
     private String password;
     @JsonRemoteProperty
     private String calendarName;
+    @JsonRemoteProperty
+    private String calendarFeed;
     private int updatePeriodType = Common.TimePeriods.MINUTES;
     @JsonRemoteProperty
     private int updatePeriods = 5;
@@ -158,6 +167,14 @@ public class GCalDataSourceVO extends DataSourceVO<GCalDataSourceVO> {
 
     public void setCalendarName(String calendarName) {
         this.calendarName = calendarName;
+    }
+
+    public String getCalendarFeed() {
+        return calendarFeed;
+    }
+
+    public void setCalendarFeed(String calendarFeed) {
+        this.calendarFeed = calendarFeed;
     }
 
     public boolean isRowBasedQuery() {
@@ -223,6 +240,7 @@ public class GCalDataSourceVO extends DataSourceVO<GCalDataSourceVO> {
         SerializationHelper.writeSafeUTF(out, username);
         SerializationHelper.writeSafeUTF(out, password);
         SerializationHelper.writeSafeUTF(out, calendarName);
+        SerializationHelper.writeSafeUTF(out, calendarFeed);
         out.writeInt(updatePeriodType);
         out.writeInt(updatePeriods);
         out.writeBoolean(rowBasedQuery);
@@ -238,6 +256,7 @@ public class GCalDataSourceVO extends DataSourceVO<GCalDataSourceVO> {
             username = SerializationHelper.readSafeUTF(in);
             password = SerializationHelper.readSafeUTF(in);
             calendarName = SerializationHelper.readSafeUTF(in);
+            calendarFeed = SerializationHelper.readSafeUTF(in);
             updatePeriodType = in.readInt();
             updatePeriods = in.readInt();
             rowBasedQuery = false;
@@ -248,6 +267,7 @@ public class GCalDataSourceVO extends DataSourceVO<GCalDataSourceVO> {
             username = SerializationHelper.readSafeUTF(in);
             password = SerializationHelper.readSafeUTF(in);
             calendarName = SerializationHelper.readSafeUTF(in);
+            calendarFeed = SerializationHelper.readSafeUTF(in);
             updatePeriodType = in.readInt();
             updatePeriods = in.readInt();
             rowBasedQuery = in.readBoolean();

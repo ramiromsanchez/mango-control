@@ -24,6 +24,7 @@ import java.io.ObjectOutputStream;
 import java.util.List;
 import java.util.Map;
 
+import com.google.gdata.client.calendar.CalendarQuery;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonObject;
 import com.serotonin.json.JsonReader;
@@ -46,11 +47,11 @@ import com.serotonin.web.i18n.LocalizableMessage;
 @JsonRemoteEntity
 public class GCalPointLocatorVO extends AbstractPointLocatorVO implements JsonSerializable {
     public LocalizableMessage getConfigurationDescription() {
-        return new LocalizableMessage("common.default", fieldName);
+        return new LocalizableMessage("common.default", daysPeriod);
     }
 
     public boolean isSettable() {
-        return !StringUtils.isEmpty(updateStatement);
+        return true;
     }
 
     public PointLocatorRT createRuntime() {
@@ -58,19 +59,30 @@ public class GCalPointLocatorVO extends AbstractPointLocatorVO implements JsonSe
     }
 
     @JsonRemoteProperty
-    private String fieldName;
-    @JsonRemoteProperty
     private String timeOverrideName;
     private int dataTypeId;
     @JsonRemoteProperty
-    private String updateStatement;
-
-    public String getFieldName() {
-        return fieldName;
+    private Integer daysPeriod = 0;
+    
+    private String strEvents = "";
+    
+    private int numEvents = 0;
+    
+    public String getEvents() {
+    	return strEvents;
     }
-
-    public void setFieldName(String fieldName) {
-        this.fieldName = fieldName;
+    
+    public void setEvents(List<String> events) {
+    	strEvents = "";
+    	numEvents = 0;
+    	for (String evt : events) {
+    		strEvents = strEvents + "<event>" + evt + "</event>";
+    		numEvents++;
+    	}
+    }
+    
+    public int getNumEvents() {
+    	return numEvents;
     }
 
     public String getTimeOverrideName() {
@@ -81,14 +93,6 @@ public class GCalPointLocatorVO extends AbstractPointLocatorVO implements JsonSe
         this.timeOverrideName = timeOverrideName;
     }
 
-    public String getUpdateStatement() {
-        return updateStatement;
-    }
-
-    public void setUpdateStatement(String updateStatement) {
-        this.updateStatement = updateStatement;
-    }
-
     public int getDataTypeId() {
         return dataTypeId;
     }
@@ -97,29 +101,32 @@ public class GCalPointLocatorVO extends AbstractPointLocatorVO implements JsonSe
         this.dataTypeId = dataTypeId;
     }
 
+    public int getDaysPeriod() {
+        return daysPeriod;
+    }
+
+    public void setDaysPeriod(int daysPeriod) {
+        this.daysPeriod = daysPeriod;
+    }
+
     public void validate(DwrResponseI18n response) {
         if (!DataTypes.CODES.isValidId(dataTypeId))
             response.addContextualMessage("dataTypeId", "validate.invalidValue");
-        if (StringUtils.isEmpty(fieldName) && StringUtils.isEmpty(updateStatement))
-            response.addContextualMessage("fieldName", "validate.fieldName");
+        if (daysPeriod < 0)
+            response.addContextualMessage("daysPeriod", "validate.daysPeriod");
     }
 
     @Override
     public void addProperties(List<LocalizableMessage> list) {
         AuditEventType.addDataTypeMessage(list, "dsEdit.pointDataType", dataTypeId);
-        AuditEventType.addPropertyMessage(list, "dsEdit.sql.rowId", fieldName);
-        AuditEventType.addPropertyMessage(list, "dsEdit.sql.timeColumn", timeOverrideName);
-        AuditEventType.addPropertyMessage(list, "dsEdit.sql.update", updateStatement);
+        AuditEventType.addPropertyMessage(list, "dsEdit.gcal.daysPeriod", daysPeriod);
     }
 
     @Override
     public void addPropertyChanges(List<LocalizableMessage> list, Object o) {
         GCalPointLocatorVO from = (GCalPointLocatorVO) o;
         AuditEventType.maybeAddDataTypeChangeMessage(list, "dsEdit.pointDataType", from.dataTypeId, dataTypeId);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.sql.rowId", from.fieldName, fieldName);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.sql.timeColumn", from.timeOverrideName,
-                timeOverrideName);
-        AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.sql.update", from.updateStatement, updateStatement);
+        AuditEventType.maybeAddPropertyChangeMessage(list, "dsEdit.gcal.daysPeriod", from.daysPeriod, daysPeriod);
     }
 
     //
@@ -132,10 +139,8 @@ public class GCalPointLocatorVO extends AbstractPointLocatorVO implements JsonSe
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
-        SerializationHelper.writeSafeUTF(out, fieldName);
-        SerializationHelper.writeSafeUTF(out, timeOverrideName);
-        SerializationHelper.writeSafeUTF(out, updateStatement);
         out.writeInt(dataTypeId);
+        out.writeInt(daysPeriod);
     }
 
     private void readObject(ObjectInputStream in) throws IOException {
@@ -143,16 +148,12 @@ public class GCalPointLocatorVO extends AbstractPointLocatorVO implements JsonSe
 
         // Switch on the version of the class so that version changes can be elegantly handled.
         if (ver == 1) {
-            fieldName = SerializationHelper.readSafeUTF(in);
-            timeOverrideName = "";
-            updateStatement = SerializationHelper.readSafeUTF(in);
             dataTypeId = in.readInt();
+            daysPeriod = in.readInt();
         }
         else if (ver == 2) {
-            fieldName = SerializationHelper.readSafeUTF(in);
-            timeOverrideName = SerializationHelper.readSafeUTF(in);
-            updateStatement = SerializationHelper.readSafeUTF(in);
             dataTypeId = in.readInt();
+            daysPeriod = in.readInt();
         }
     }
 
